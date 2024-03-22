@@ -47,8 +47,8 @@ const upload = multer({ storage: multer_storage });
 
 initializeApp({
   credential: cert(serviceAccount),
-//   storageBucket: "gs://webthreedland.appspot.com",
-    storageBucket: "webthreedland.appspot.com",
+//   storageBucket: "gs://web3dland.appspot.com",
+    storageBucket: "web3dland.appspot.com",
 });
 
 const db = getFirestore();
@@ -90,7 +90,7 @@ app.post("/add", upload.any(), async (req, res) => {
         return res.status(400).send("Error uploading file");
       }
       console.log("File uploaded successfully"); 
-      
+
       console.log(file);
     });
 
