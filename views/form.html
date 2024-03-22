@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form </title><script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js" integrity="sha512-qp190c9mQz0dBG4WDw9gh96lS4VPmgewqOn5h/i04TaANIODXxFagRTaga4nS6VkbWFraPan1BGwZh6FS48uHg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./try.js"></script>
+</head>
+<body>
+    <form action="/add" method="POST" enctype="multipart/form-data">
+        <label for="model_name">Model Name:</label>
+        <input type="text" id="model_name" name="model_name" required><br>
+    
+        <label for="seller_wallet">Seller Wallet:</label>
+        <input type="text" id="seller_wallet" name="seller_wallet" required><br>
+    
+        <label for="cost">Cost:</label>
+        <input type="number" id="cost" name="cost" required><br>
+    
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea><br>
+    
+        <label for="model_file">Model File:</label>
+        <input type="file" id="model_file" name="model_file" required><br>
+    
+        <label for="tags">Tags:</label>
+        <input type="text" id="tags" name="tags" required><br>
+    
+        <label for="category">Category:</label>
+        <input type="text" id="category" name="category" required><br>
+    
+        <input type="submit" value="Submit"> 
+    </form>
+    <button onclick="main()">Connect to wallet</button>
+</body>
+    <script>
+    
+        const form = document.querySelector('form');
+    
+        form.addEventListener('submit',e=>{
+            e.preventDefault();
+    
+            const formData = new FormData(form);
+                
+            fetch('/add',{
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success){
+                    alert('Model added successfully');
+                    window.location.href = '/';
+                }else{
+                    alert('Error adding model');
+                }
+            })
+        })
+    </script>
+</html>
