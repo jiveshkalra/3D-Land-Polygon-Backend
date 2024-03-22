@@ -19,7 +19,7 @@ const multer = require("multer");
 const {
   getStorage,
   Storage,
-  getDownloadURL 
+  getDownloadURL,
 } = require("firebase-admin/storage");
 const serviceAccount = require("./serviceAccountKey.json");
 var express = require("express");
@@ -47,13 +47,14 @@ const upload = multer({ storage: multer_storage });
 
 initializeApp({
   credential: cert(serviceAccount),
-  storageBucket: "webthreedland.appspot.com",
+//   storageBucket: "gs://webthreedland.appspot.com",
+    storageBucket: "webthreedland.appspot.com",
 });
 
 const db = getFirestore();
 const storage = getStorage();
 
-var model_bucket = storage.bucket('models');
+var model_bucket = storage.bucket();
 
 // Test Route
 app.get("/form", function (req, res) {
@@ -62,10 +63,10 @@ app.get("/form", function (req, res) {
 
 // 1. Add an entry to the database
 app.post("/add", upload.any(), async (req, res) => {
-  if (!req.files || Object.keys(req.files).length === 0) {
+  if (!req.files || Object.keys(req.files).length === 0) { 
     return res.status(400).send("No files were uploaded.");
   }
-  if (req.body) {
+  if (req.body) { 
     var entry = {
       model_name: req.body.model_name,
       seller_wallet: req.body.seller_wallet,
@@ -76,29 +77,44 @@ app.post("/add", upload.any(), async (req, res) => {
       category: req.body.category,
     };
 
-    // Upload model file to storage 
+    // Upload model file to storage
     model_file_path = req.files[0].path;
     model_file_filename = req.files[0].filename;
-    var fileRef = model_bucket.file(model_file_filename);  
-    return fileRef.getSignedUrl({
-        action: 'read',
-        expires: '03-09-2491'
-      }).then(signedUrls => { 
-        entry.model_url = signedUrls[0];
-        var id = crypto.randomUUID().substring(2, 18);
-        db.collection("models")
-          .doc(id)
-          .set(entry, { merge: true })
-          .then((result) => {
-            console.log(result);
-            res.status(200).send("Entry added to database");
-          })
-          .catch((error) => {
-            console.log(error);
-            res.status(500).send("Error adding entry to database");
-          });
-      });
+    
+    const fileRef = model_bucket.file(model_file_filename);
+    const metadata = { contentType: req.files[0].mimetype };
+    const options = {destination: model_file_filename}
+    await model_bucket.upload(model_file_path, options,(err, file) =>{
+      if (err) {
+        console.log(err);
+        return res.status(400).send("Error uploading file");
+      }
+      console.log("File uploaded successfully"); 
+      
+      console.log(file);
+    });
 
+    // const uploadStream = fileRef.createWriteStream({ metadata });  
+      
+    // uploadStream.on("error", (err) => {
+    //   console.log(err);
+    // });
+    // uploadStream.on("finish", () => {
+    //   console.log("Upload complete");
+    //   const image_url = `https://storage.googleapis.com/${model_bucket.name}/${fileRef.name}`;
+    //   console.log(image_url);
+ 
+    //   console.log(image_url);
+    //   entry.model_url = image_url;
+    //   var id = crypto.randomUUID().substring(2, 18);
+    //   db.collection("models")
+    //     .doc(id)
+    //     .set(entry, { merge: true })
+    //     .then((result) => {
+    //       console.log(result);
+    //       res.status(200).send("Entry added to database");
+    //     });
+    // }); 
   } else {
     res.status(400).send("Invalid request body");
   }
